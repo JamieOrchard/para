@@ -1,10 +1,10 @@
 struct Sprite
 {
 	public:
-		int Create(SDL_Renderer*, std::string);
+		int Create(std::string);
 		void Free();
 		SDL_Texture* Get() {return spriteTexture;}
-		void Render(SDL_Renderer*, float);
+		void Render(float);
 
 		void SetAnimation(int, float, SDL_Rect);
 		void ResetAnimation();
@@ -20,7 +20,7 @@ struct Sprite
 		std::string spriteLocation;
 };
 
-int Sprite::Create(SDL_Renderer* renderer, std::string location)
+int Sprite::Create(std::string location)
 {
 	SDL_Surface* tempSurface = SDL_LoadBMP(location.c_str());
 	if(tempSurface == nullptr)
@@ -28,7 +28,7 @@ int Sprite::Create(SDL_Renderer* renderer, std::string location)
 		printf("Failed to create surface [%s]\n", SDL_GetError());
 		return -1;
 	}
-	spriteTexture = SDL_CreateTextureFromSurface(renderer, tempSurface);
+	spriteTexture = SDL_CreateTextureFromSurface(gameSystem.renderer, tempSurface);
 	if(spriteTexture == nullptr)
 	{
 		printf("Failed to create Texture [%s]\n", SDL_GetError());
@@ -60,22 +60,20 @@ void Sprite::ResetAnimation()
 
 void Sprite::Free()
 {
-	printf("Free'd Texture [%s]\n", spriteLocation.c_str());
 	SDL_DestroyTexture(spriteTexture);
 }
 
-void Sprite::Render(SDL_Renderer* renderer, float delta)
+void Sprite::Render(float delta)
 {
 	//No Animation
 	if(spriteFrames == 0)
 	{
-		SDL_RenderCopy(renderer, spriteTexture, nullptr, nullptr);
+		SDL_RenderCopy(gameSystem.renderer, spriteTexture, nullptr, nullptr);
 		return;
 	}
-	printf("spriteCurrentFrame [%f]\n", spriteCurrentFrame);
+	//Animation
 	spriteCurrentFrame += delta;
 	int currentFrame = spriteCurrentFrame / spriteFrameSpeed;
-	printf("currentFrame [%i]\n", currentFrame);
 	if(currentFrame > spriteFrames - 1)
 	{
 		currentFrame = 0;
@@ -84,5 +82,5 @@ void Sprite::Render(SDL_Renderer* renderer, float delta)
 	SDL_Rect tempRect = spriteSrc;
 	tempRect.x = tempRect.w * currentFrame;
 
-	SDL_RenderCopy(renderer, spriteTexture, &tempRect, &spriteDst);
+	SDL_RenderCopy(gameSystem.renderer, spriteTexture, &tempRect, &spriteDst);
 }
