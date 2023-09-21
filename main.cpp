@@ -2,6 +2,12 @@
 #include "SDL.h"
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <string>
+#include <vector>
+
+#include "src/timer.cpp"
+#include "src/sprites.cpp"
 
 //Setup SDL
 bool SDLSetUp(SDL_Window** window, SDL_Renderer** renderer)
@@ -29,25 +35,26 @@ bool SDLSetUp(SDL_Window** window, SDL_Renderer** renderer)
 	return true;
 }
 
+void SDLShutdown(SDL_Window** window, SDL_Renderer** renderer)
+{
+	SDL_DestroyRenderer(*renderer);
+	SDL_DestroyWindow(*window);
+}
+
 int main(int argc, char* argv[])
 {
 	SDL_Window* gameWindow = nullptr;
 	SDL_Renderer* gameRenderer = nullptr;
 	SDLSetUp(&gameWindow, &gameRenderer);
 
-	if(gameWindow == nullptr){printf("FAILED\n");}
+	Sprite newSprite;
+	newSprite.Create(gameRenderer, "sprites\\test_texture_man.bmp");
+	SDL_Rect animationFrame = {0, 0, 32, 32};
+	newSprite.SetAnimation(4, 30, animationFrame);
 
-	//test texture
-	SDL_Surface* newSurface = SDL_LoadBMP("sprites//test_texture.bmp");
-	SDL_Texture* newTexture = SDL_CreateTextureFromSurface(gameRenderer, newSurface);
+	newSprite.spriteDst = { 100, 100 ,64, 64};
 
-	if(newSurface == nullptr)
-		printf("Failed to create Surface [%s] \n", SDL_GetError());
-
-	printf("Surface Created with dimensions [%i] [%i] \n", newSurface->w, newSurface->h);
-
-	if(newTexture == nullptr)
-		printf("Failed to create Texture [%s] \n", SDL_GetError());
+	Clock gameTimer;
 
 	bool running = true;
 
@@ -63,15 +70,17 @@ int main(int argc, char* argv[])
 			}
 		}
 
+		SDL_SetRenderDrawColor(gameRenderer, 255, 255, 255, 255);
 		SDL_RenderClear(gameRenderer);
-		SDL_RenderCopy(gameRenderer, newTexture, nullptr, nullptr);
+		newSprite.Render(gameRenderer, gameTimer.delta);
 		SDL_RenderPresent(gameRenderer);
+
+		gameTimer.Update();
 	}
 
-	SDL_DestroyTexture(newTexture);
-	SDL_FreeSurface(newSurface);
-	SDL_DestroyRenderer(gameRenderer);
-	SDL_DestroyWindow(gameWindow);
+	newSprite.Free();
+
+	SDLShutdown(&gameWindow, &gameRenderer);
 
 	return 0;
 }

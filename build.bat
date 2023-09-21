@@ -1,1 +1,1 @@
-cl main.cpp /I C:/Libraries/SDL2/include /link sdl2.lib sdl2main.lib /subsystem:console
+cl /EHsc main.cpp /I C:/Libraries/SDL2/include /link sdl2.lib sdl2main.lib /subsystem:console 
